@@ -1,9 +1,19 @@
+use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::Parser;
 use std::path::PathBuf;
 
+// This function creates the explicit styles for clap's help message.
+fn styles() -> clap::builder::Styles {
+    Styles::styled()
+        .header(AnsiColor::Yellow.on_default() | Effects::BOLD)
+        .usage(AnsiColor::Yellow.on_default() | Effects::BOLD)
+        .literal(AnsiColor::Green.on_default() | Effects::BOLD)
+        .placeholder(AnsiColor::Blue.on_default())
+}
+
 /// XML Structure Analyzer - Parse and group TEI XML files by their structural skeleton
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None, styles = styles())]
 pub struct Cli {
     /// Directory containing XML files to process
     #[arg(value_name = "DIRECTORY")]
@@ -14,7 +24,12 @@ pub struct Cli {
     pub output: Option<String>,
 
     /// Configuration file path
-    #[arg(short, long, value_name = "FILE", default_value = "config/default.toml")]
+    #[arg(
+        short,
+        long,
+        value_name = "FILE",
+        default_value = "config/default.toml"
+    )]
     pub config: String,
 
     /// Number of parallel threads (0 = auto-detect)
@@ -70,7 +85,7 @@ mod tests {
             no_pretty: false,
             verbose: true,
         };
-        
+
         assert_eq!(cli.effective_log_level(), "debug");
     }
 
@@ -87,7 +102,7 @@ mod tests {
             no_pretty: false,
             verbose: false,
         };
-        
+
         assert_eq!(cli.effective_log_level(), "info");
     }
 }

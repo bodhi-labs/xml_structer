@@ -1,7 +1,6 @@
 use std::fs;
-use std::path::PathBuf;
 use tempfile::TempDir;
-use xml_structer::model::XmlStructure;
+
 use xml_structer::processor::{parse_xml_structure, process_xml_files};
 
 #[test]
@@ -19,11 +18,7 @@ fn test_parse_simple_book() {
     assert_eq!(structure.name, "book");
     assert_eq!(structure.children.len(), 3);
 
-    let child_names: Vec<String> = structure
-        .children
-        .iter()
-        .map(|c| c.name.clone())
-        .collect();
+    let child_names: Vec<String> = structure.children.iter().map(|c| c.name.clone()).collect();
 
     assert!(child_names.contains(&"title".to_string()));
     assert!(child_names.contains(&"author".to_string()));

@@ -8,12 +8,12 @@ use std::hash::{Hash, Hasher};
 pub struct XmlStructure {
     /// Element name (e.g., "book", "TEI", "title")
     pub name: String,
-    
+
     /// Attribute keys only (values ignored for structural comparison)
     /// Using BTreeMap for deterministic ordering
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<BTreeMap<String, ()>>,
-    
+
     /// Child elements (recursively defined)
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub children: Vec<Box<XmlStructure>>,
@@ -45,28 +45,35 @@ impl XmlStructure {
     /// Format: name[attr1,attr2]{child1,child2}
     pub fn signature(&self) -> String {
         let mut sig = self.name.clone();
-        
+
         if let Some(attrs) = &self.attributes {
             if !attrs.is_empty() {
                 let attr_keys: Vec<&String> = attrs.keys().collect();
                 sig.push('[');
-                sig.push_str(&attr_keys.iter()
-                    .map(|k| k.as_str())
-                    .collect::<Vec<_>>()
-                    .join(","));
+                sig.push_str(
+                    &attr_keys
+                        .iter()
+                        .map(|k| k.as_str())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                );
                 sig.push(']');
             }
         }
-        
+
         if !self.children.is_empty() {
             sig.push('{');
-            sig.push_str(&self.children.iter()
-                .map(|c| c.signature())
-                .collect::<Vec<_>>()
-                .join(","));
+            sig.push_str(
+                &self
+                    .children
+                    .iter()
+                    .map(|c| c.signature())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
             sig.push('}');
         }
-        
+
         sig
     }
 
@@ -82,14 +89,14 @@ impl XmlStructure {
 impl Hash for XmlStructure {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
-        
+
         if let Some(attrs) = &self.attributes {
             // Hash attribute keys in sorted order
             for key in attrs.keys() {
                 key.hash(state);
             }
         }
-        
+
         // Hash children
         for child in &self.children {
             child.hash(state);
@@ -102,16 +109,16 @@ impl Hash for XmlStructure {
 pub struct StructureGroup {
     /// Unique signature for this structure
     pub signature: String,
-    
+
     /// Hash of the structure (for quick comparison)
     pub hash: u64,
-    
+
     /// The actual XML structure
     pub structure: XmlStructure,
-    
+
     /// List of file paths with this structure
     pub files: Vec<String>,
-    
+
     /// Number of files in this group
     pub count: usize,
 }
@@ -120,7 +127,7 @@ impl StructureGroup {
     pub fn new(structure: XmlStructure, file_path: String) -> Self {
         let signature = structure.signature();
         let hash = structure.structure_hash();
-        
+
         Self {
             signature,
             hash,
@@ -141,10 +148,10 @@ impl StructureGroup {
 pub struct ProcessingResult {
     /// Total number of files processed
     pub total_files: usize,
-    
+
     /// Number of unique structures found
     pub unique_structures: usize,
-    
+
     /// All structure groups
     pub groups: Vec<StructureGroup>,
 }
@@ -157,12 +164,12 @@ mod tests {
     fn test_xml_structure_basic() {
         let mut root = XmlStructure::new("book".to_string());
         root.add_attribute("id".to_string());
-        
+
         let mut title = XmlStructure::new("title".to_string());
         title.add_attribute("lang".to_string());
-        
+
         root.add_child(title);
-        
+
         assert_eq!(root.name, "book");
         assert!(root.attributes.is_some());
         assert_eq!(root.children.len(), 1);
@@ -173,10 +180,10 @@ mod tests {
         let mut root = XmlStructure::new("book".to_string());
         root.add_attribute("id".to_string());
         root.add_attribute("type".to_string());
-        
+
         let title = XmlStructure::new("title".to_string());
         root.add_child(title);
-        
+
         let sig = root.signature();
         assert!(sig.contains("book"));
         assert!(sig.contains("id"));
@@ -188,10 +195,10 @@ mod tests {
     fn test_structure_equality() {
         let mut s1 = XmlStructure::new("book".to_string());
         s1.add_attribute("id".to_string());
-        
+
         let mut s2 = XmlStructure::new("book".to_string());
         s2.add_attribute("id".to_string());
-        
+
         assert_eq!(s1, s2);
         assert_eq!(s1.structure_hash(), s2.structure_hash());
     }

@@ -2,6 +2,19 @@
 name = "xml_structer"
 version = "0.1.0"
 edition = "2021"
+description = "Xml processing for data preparation"
+license     = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+wasm = ["dep:wasm-bindgen", "dep:serde-wasm-bindgen", "dep:web-sys", "dep:console_error_panic_hook"]
+
+[[bin]]
+name = "xml-structer"
+path = "src/main.rs"
 
 [dependencies]
 # XML parsing - fast, read-only DOM tree
@@ -29,7 +42,16 @@ anyhow = "1.0"
 thiserror = "1.0"
 
 # CLI
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4.5", features = ["derive", "color"] }
+is-terminal = "0.4.12"  # colours
+colored = "2.1.0"
+console   = "0.15"  # colours
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+# wasm
+wasm-bindgen       = { version = "0.2", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+web-sys            = { version = "0.3", optional = true, features = ["console"] }
 
 # Configuration
 config = "0.14"

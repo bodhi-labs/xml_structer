@@ -1,29 +1,39 @@
-
+mod cli;
+mod processor;
+mod utils;
+mod xsconfig;
 
 use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Cli;
-use config::Config;
+use is_terminal::IsTerminal;
 use processor::{create_progress_bar, print_summary, process_xml_files, write_result_to_file};
 use std::time::Instant;
 use tracing::info;
 use utils::{find_xml_files, init_logging, validate_directory};
+use xsconfig::XsConfig;
 
 fn main() -> Result<()> {
+    // Per rust-cli-recommendations, explicitly control color output.
+    // If we are not in an interactive terminal, disable colors for the `colored` crate.
+    if !std::io::stdout().is_terminal() {
+        colored::control::set_override(false);
+    }
+
     // Parse command line arguments
     let cli = Cli::parse();
 
     // Load configuration
     let config = if std::path::Path::new(&cli.config).exists() {
-        Config::from_file(&cli.config)
+        XsConfig::from_file(&cli.config)
             .with_context(|| format!("Failed to load config from {}", cli.config))?
     } else {
         eprintln!("⚠️  Config file not found, using defaults");
-        Config::default()
+        XsConfig::default()
     };
 
     // Merge CLI overrides
-    let mut config = config.merge_with_cli(cli.output, cli.threads);
+    let mut config = config.merge_with_cli(cli.output.clone(), cli.threads);
 
     // Override max_depth if provided via CLI
     if let Some(max_depth) = cli.max_depth {
@@ -48,8 +58,7 @@ fn main() -> Result<()> {
     info!("Output file: {}", config.output.output_file);
 
     // Validate input directory
-    validate_directory(&cli.input_dir)
-        .context("Input directory validation failed")?;
+    validate_directory(&cli.input_dir).context("Input directory validation failed")?;
 
     // Configure rayon thread pool if specified
     if config.processing.num_threads > 0 {
@@ -84,8 +93,8 @@ fn main() -> Result<()> {
 
     // Process files
     info!("⚙️  Processing XML files...");
-    let result = process_xml_files(xml_files, progress_bar)
-        .context("Failed to process XML files")?;
+    let result =
+        process_xml_files(xml_files, progress_bar).context("Failed to process XML files")?;
 
     // Write results
     let output_path = config.output_file_path();
