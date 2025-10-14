@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="doc1">
+    <teiHeader>
+        <fileDesc>
+            <titleStmt>
+                <title type="main">Document Title</title>
+                <author role="creator">Author Name</author>
+            </titleStmt>
+            <publicationStmt>
+                <publisher>Publisher Name</publisher>
+                <date when="2024">2024</date>
+            </publicationStmt>
+        </fileDesc>
+    </teiHeader>
+    <text>
+        <body>
+            <div type="chapter" n="1">
+                <head>Chapter One</head>
+                <p>Content here</p>
+            </div>
+        </body>
+    </text>
+</TEI>

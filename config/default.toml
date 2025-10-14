@@ -1,0 +1,28 @@
+# Default configuration for xml_structer
+
+[processing]
+# Number of parallel threads (0 = auto-detect based on CPU cores)
+num_threads = 0
+
+# Maximum depth for directory traversal (0 = unlimited)
+max_depth = 0
+
+# File extensions to process
+file_extensions = ["xml", "tei"]
+
+[output]
+# Output file for structural signatures
+output_file = "xml_structures.json"
+
+# Pretty print JSON output
+pretty_print = true
+
+# Include file paths in output
+include_paths = true
+
+[logging]
+# Log level: trace, debug, info, warn, error
+level = "info"
+
+# Log file path (optional, if not set logs only to stdout)
+# log_file = "xml_structer.log"

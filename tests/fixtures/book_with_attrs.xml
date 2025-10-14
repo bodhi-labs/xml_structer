@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book id="123" type="fiction" lang="en">
+    <title edition="1st">Classic Tale</title>
+    <author nationality="US">Famous Writer</author>
+    <year>2022</year>
+    <metadata>
+        <isbn>978-1234567890</isbn>
+        <publisher>Great Books Inc</publisher>
+    </metadata>
+</book>
