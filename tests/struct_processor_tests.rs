@@ -1,7 +1,7 @@
 use std::fs;
 use tempfile::TempDir;
 
-use xml_structer::processor::{parse_xml_structure, process_xml_files};
+use xml_structer::struct_processor::{parse_xml_structure, process_xml_files};
 
 #[test]
 fn test_parse_simple_book() {
