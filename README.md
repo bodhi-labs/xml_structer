@@ -50,6 +50,8 @@ xml_structer /path/to/xml/files -t 8
 
 # Verbose logging
 xml_structer /path/to/xml/files -v
+
+
 ```
 
 ### Command Line Options

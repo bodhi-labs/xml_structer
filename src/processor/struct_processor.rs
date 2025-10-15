@@ -104,7 +104,9 @@ fn process_single_file(
     let structure = parse_xml_structure(&content)
         .with_context(|| format!("Failed to parse XML structure: {}", file_path))?;
 
-    let hash = structure.structure_hash();
+    // Generate compact skeleton signature
+    let skeleton = structure.to_skeleton();
+    let hash = skeleton.hash;
 
     // Add to groups map
     let mut groups = groups_map.lock().unwrap();
@@ -160,17 +162,24 @@ pub fn print_summary(result: &ProcessingResult) {
     println!("\n🔍 Top 5 most common structures:");
 
     for (i, group) in result.groups.iter().take(5).enumerate() {
+        let sig = group.signature_string();
         println!(
             "  {}. {} files with structure: {}",
             i + 1,
             group.count,
-            if group.signature.len() > 80 {
-                format!("{}...", &group.signature[..80])
+            if sig.len() > 100 {
+                format!("{}...", &sig[..100])
             } else {
-                group.signature.clone()
+                sig
             }
         );
     }
+
+    // Calculate size savings
+    println!("\n💾 Skeleton Signature Benefits:");
+    println!("  - Each skeleton stores merged structure (not duplicated)");
+    println!("  - Duplicate child elements are combined");
+    println!("  - Only ONE example structure kept per group");
 }
 
 #[cfg(test)]
@@ -187,6 +196,10 @@ mod tests {
         assert_eq!(structure.name, "book");
         assert!(structure.attributes.is_some());
         assert_eq!(structure.children.len(), 1);
+
+        // Test skeleton generation
+        let skeleton = structure.to_skeleton();
+        assert_eq!(skeleton.root, "book");
     }
 
     #[test]
@@ -210,6 +223,17 @@ mod tests {
         let structure = result.unwrap();
         assert_eq!(structure.name, "book");
         assert_eq!(structure.children.len(), 2);
+
+        // Skeleton should merge the two chapter elements
+        let skeleton = structure.to_skeleton();
+        let content_children = skeleton
+            .skeleton
+            .get("content")
+            .unwrap()
+            .as_object()
+            .unwrap();
+        // Should have ONE "chapter" key (merged)
+        assert!(content_children.contains_key("chapter"));
     }
 
     #[test]
@@ -217,10 +241,20 @@ mod tests {
         let xml = r#"<book id="123" type="fiction" lang="en"></book>"#;
         let structure = parse_xml_structure(xml).unwrap();
 
-        let attrs = structure.attributes.unwrap();
+        let attrs = structure.clone().attributes.unwrap();
         assert_eq!(attrs.len(), 3);
         assert!(attrs.contains_key("id"));
         assert!(attrs.contains_key("type"));
         assert!(attrs.contains_key("lang"));
+
+        // Skeleton should preserve attribute keys
+        let skeleton = structure.to_skeleton();
+        let skeleton_attrs = skeleton
+            .skeleton
+            .get("@attributes")
+            .unwrap()
+            .as_array()
+            .unwrap();
+        assert_eq!(skeleton_attrs.len(), 3);
     }
 }
